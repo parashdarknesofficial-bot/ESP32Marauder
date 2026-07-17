@@ -248,7 +248,6 @@ jobs:
       #- name: Rename Marauder ${{ matrix.board.name }} bin
       #  run: |
       #    mv ./esp32_marauder/build/esp32.esp32.${{ matrix.board.build_dir }}/esp32_marauder.ino.bin ./esp32_marauder/build/esp32.esp32.${{ matrix.board.build_dir }}/esp32_marauder.${{ matrix.board.file_name }}.bin
-      
       - name: Rename and Upload ${{ matrix.board.name }} Artifact
         run: |
           VERSION=$(grep '#define MARAUDER_VERSION' ./esp32_marauder/configs.h | sed -E 's/.*"v([^"]+)"/v\1/' | tr '.' '_')
@@ -257,17 +256,47 @@ jobs:
           BUILD_DIR=./esp32_marauder/build/esp32.esp32.${{ matrix.board.build_dir }}
           INPUT_BIN=$BUILD_DIR/esp32_marauder.ino.bin
           OUTPUT_BIN=esp32_marauder_${VERSION}_${DATE}_${{ matrix.board.file_name }}.bin
-          VERSION_DOT=${VERSION_DOT}
+          OUTPUT_BOOT=esp32_marauder_${VERSION}_${DATE}_${{ matrix.board.file_name }}_bootloader.bin
+          OUTPUT_PART=esp32_marauder_${VERSION}_${DATE}_${{ matrix.board.file_name }}_partitions.bin
+          OUTPUT_APP0=esp32_marauder_${VERSION}_${DATE}_${{ matrix.board.file_name }}_boot_app0.bin
 
           mv "$INPUT_BIN" "$BUILD_DIR/$OUTPUT_BIN"
+          cp "$BUILD_DIR/esp32_marauder.ino.bootloader.bin" "$BUILD_DIR/$OUTPUT_BOOT"
+          cp "$BUILD_DIR/esp32_marauder.ino.partitions.bin" "$BUILD_DIR/$OUTPUT_PART"
+          BOOT_APP0=$(find /home/runner/.arduino15/packages/esp32/hardware/esp32/ -name "boot_app0.bin" | head -n1)
+          cp "$BOOT_APP0" "$BUILD_DIR/$OUTPUT_APP0"
 
           echo "artifact_name=$OUTPUT_BIN" >> $GITHUB_ENV
           echo "artifact_path=$BUILD_DIR/$OUTPUT_BIN" >> $GITHUB_ENV
+          echo "boot_name=$OUTPUT_BOOT" >> $GITHUB_ENV
+          echo "boot_path=$BUILD_DIR/$OUTPUT_BOOT" >> $GITHUB_ENV
+          echo "part_name=$OUTPUT_PART" >> $GITHUB_ENV
+          echo "part_path=$BUILD_DIR/$OUTPUT_PART" >> $GITHUB_ENV
+          echo "app0_name=$OUTPUT_APP0" >> $GITHUB_ENV
+          echo "app0_path=$BUILD_DIR/$OUTPUT_APP0" >> $GITHUB_ENV
       - name: Upload ${{ matrix.board.name }} Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.artifact_name }}
           path: ${{ env.artifact_path }}
+          retention-days: 5
+      - name: Upload ${{ matrix.board.name }} Bootloader
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.boot_name }}
+          path: ${{ env.boot_path }}
+          retention-days: 5
+      - name: Upload ${{ matrix.board.name }} Partitions
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.part_name }}
+          path: ${{ env.part_path }}
+          retention-days: 5
+      - name: Upload ${{ matrix.board.name }} boot_app0
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.app0_name }}
+          path: ${{ env.app0_path }}
           retention-days: 5
 
   post_compile_steps:
