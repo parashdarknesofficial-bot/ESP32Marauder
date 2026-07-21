@@ -2954,7 +2954,7 @@
   //// PCAP BUFFER STUFF
 
   //// STUPID CYD STUFF
-  #if defined(HAS_CYD_TOUCH) || defined(HAS_C5_SD) || defined(HAS_SEPARATE_SD)
+#if defined(HAS_CYD_TOUCH) || defined(HAS_C5_SD) || defined(HAS_SEPARATE_SD) || defined(MARAUDER_MULTIBOARD_S3)
     #ifdef MARAUDER_CYD_MICRO
       #define XPT2046_IRQ  36
       #define XPT2046_MOSI 32
@@ -3045,7 +3045,12 @@
       #define SD_SCK  TFT_SCLK
     #endif
   #endif
-  //// END STUPID CYD STUFF
+  #ifdef MARAUDER_MULTIBOARD_S3
+      #define SD_MISO 13
+      #define SD_MOSI 11
+      #define SD_SCK  12
+    #endif
+//// END STUPID CYD STUFF
 
   //// FUNNY FLIPPER LED STUFF
 
